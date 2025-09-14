@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Loader, Sparkles, AlertTriangle } from 'lucide-react';
-import { attendanceAnomalyData } from '@/lib/data';
+import { usePresences } from '@/hooks/use-api';
 import { useToast } from '@/hooks/use-toast';
 
 export default function InsightIdentification() {
@@ -23,6 +23,7 @@ export default function InsightIdentification() {
   const [anomalies, setAnomalies] = useState('');
   const [anomaliesLoading, setAnomaliesLoading] = useState(false);
   const { toast } = useToast();
+  const { presences } = usePresences({ limit: 100 });
 
   const handleGenerateSummary = async () => {
     setSummaryLoading(true);
@@ -53,7 +54,7 @@ export default function InsightIdentification() {
     setAnomalies('');
     try {
       const result = await detectAttendanceAnomalies({
-        attendanceData: attendanceAnomalyData,
+        attendanceData: JSON.stringify(presences),
       });
       setAnomalies(result.anomalies);
     } catch (error) {

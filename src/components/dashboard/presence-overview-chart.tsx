@@ -9,7 +9,7 @@ import {
   Tooltip,
   Legend,
 } from 'recharts';
-import { presenceData } from '@/lib/data';
+import { useStats } from '@/hooks/use-api';
 import {
   ChartTooltipContent,
   ChartTooltip,
@@ -17,10 +17,32 @@ import {
 } from '@/components/ui/chart';
 
 export default function PresenceOverviewChart() {
-  const chartData = presenceData.byFaculty.map((item) => ({
-    name: item.faculty.split(' ').slice(0, 2).join(' '), // Shorten name for chart
-    Taux: item.attendanceRate,
-    Absences: item.absences,
+  const { stats, loading, error } = useStats();
+
+  if (loading) {
+    return (
+      <div className="h-[350px] w-full flex items-center justify-center">
+        <div className="text-sm text-muted-foreground">Loading chart data...</div>
+      </div>
+    );
+  }
+
+  if (error || !stats) {
+    return (
+      <div className="h-[350px] w-full flex items-center justify-center">
+        <div className="text-sm text-muted-foreground">
+          {error || 'Unable to load chart data'}
+        </div>
+      </div>
+    );
+  }
+
+  const chartData = stats.by_promotion.map((item) => ({
+    name: item.promotion.split(' ').slice(0, 2).join(' '), // Shorten name for chart
+    Taux: item.total_presences > 0 
+      ? Math.round((item.on_time_count / item.total_presences) * 100)
+      : 0,
+    Retards: item.late_count,
   }));
 
   const chartConfig = {
@@ -28,8 +50,8 @@ export default function PresenceOverviewChart() {
       label: 'Attendance Rate',
       color: 'hsl(var(--primary))',
     },
-    Absences: {
-      label: 'Absences',
+    Retards: {
+      label: 'Late Arrivals',
       color: 'hsl(var(--destructive))',
     },
   };
@@ -62,6 +84,12 @@ export default function PresenceOverviewChart() {
             fill="var(--color-Taux)"
             radius={[4, 4, 0, 0]}
             name="Attendance Rate"
+          />
+          <Bar
+            dataKey="Retards"
+            fill="var(--color-Retards)"
+            radius={[4, 4, 0, 0]}
+            name="Late Arrivals"
           />
         </BarChart>
       </ResponsiveContainer>

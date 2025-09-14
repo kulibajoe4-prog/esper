@@ -20,7 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { faculties, departments, promotions } from '@/lib/data';
+import { useStructure } from '@/hooks/use-api';
+import { fallbackData } from '@/lib/data';
 
 export default function Filters() {
   const [date, setDate] = React.useState<DateRange | undefined>({
@@ -31,24 +32,36 @@ export default function Filters() {
     null
   );
   const [selectedDept, setSelectedDept] = React.useState<string | null>(null);
+  const { structure, loading } = useStructure();
 
+  // Utiliser les données de l'API ou les données de fallback
+  const entities = structure?.entities || fallbackData.departments;
+  const promotions = structure?.promotions || fallbackData.promotions;
+  
+  // Filtrer les facultés (niveau 1)
+  const faculties = entities.filter(entity => entity.level === 1);
+  
+  // Filtrer les départements selon la faculté sélectionnée
   const availableDepts = selectedFaculty
-    ? departments[selectedFaculty as keyof typeof departments] || []
+    ? entities.filter(entity => entity.level === 2 && entity.parent_id === parseInt(selectedFaculty))
     : [];
+    
+  // Filtrer les promotions selon le département sélectionné
   const availablePromos = selectedDept
-    ? promotions[selectedDept as keyof typeof promotions] || []
+    ? promotions.filter(promo => promo.entityId === parseInt(selectedDept))
     : [];
+
 
   return (
     <div className="flex flex-wrap items-center gap-4">
       <Select onValueChange={setSelectedFaculty}>
         <SelectTrigger className="w-full md:w-[200px]">
-          <SelectValue placeholder="Select Faculty" />
+          <SelectValue placeholder={loading ? "Loading..." : "Select Faculty"} />
         </SelectTrigger>
         <SelectContent>
           {faculties.map((faculty) => (
-            <SelectItem key={faculty.id} value={faculty.id}>
-              {faculty.name}
+            <SelectItem key={faculty.id} value={faculty.id.toString()}>
+              {faculty.title}
             </SelectItem>
           ))}
         </SelectContent>
@@ -56,12 +69,12 @@ export default function Filters() {
 
       <Select onValueChange={setSelectedDept} disabled={!selectedFaculty}>
         <SelectTrigger className="w-full md:w-[200px]">
-          <SelectValue placeholder="Select Department" />
+          <SelectValue placeholder={loading ? "Loading..." : "Select Department"} />
         </SelectTrigger>
         <SelectContent>
           {availableDepts.map((dept) => (
-            <SelectItem key={dept.id} value={dept.id}>
-              {dept.name}
+            <SelectItem key={dept.id} value={dept.id.toString()}>
+              {dept.title}
             </SelectItem>
           ))}
         </SelectContent>
@@ -69,12 +82,12 @@ export default function Filters() {
 
       <Select disabled={!selectedDept}>
         <SelectTrigger className="w-full md:w-[200px]">
-          <SelectValue placeholder="Select Promotion" />
+          <SelectValue placeholder={loading ? "Loading..." : "Select Promotion"} />
         </SelectTrigger>
         <SelectContent>
           {availablePromos.map((promo) => (
-            <SelectItem key={promo.id} value={promo.id}>
-              {promo.name}
+            <SelectItem key={promo.id} value={promo.id.toString()}>
+              {promo.title}
             </SelectItem>
           ))}
         </SelectContent>

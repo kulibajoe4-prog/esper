@@ -21,6 +21,7 @@ import {
   LayoutDashboard,
   LogOut,
   Settings,
+  UserCheck,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
@@ -57,6 +58,18 @@ const DashboardLayout: FC<PropsWithChildren> = ({ children }) => {
                 <Link href="/">
                   <LayoutDashboard />
                   <span>Dashboard</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname === '/presence'}
+                tooltip={{ children: 'Présences' }}
+              >
+                <Link href="/presence">
+                  <UserCheck />
+                  <span>Présences</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

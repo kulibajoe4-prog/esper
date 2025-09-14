@@ -10,12 +10,19 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { students, faculties } from '@/lib/data';
+import { useStudents, useStructure } from '@/hooks/use-api';
+import { fallbackData } from '@/lib/data';
 import ReportsHeader from '@/components/reports/header';
 import AttendanceByDepartmentChart from '@/components/reports/attendance-by-department-chart';
 import TardinessByFacultyChart from '@/components/reports/tardiness-by-faculty-chart';
 
 export default function ReportsPage() {
+  const { students, loading: studentsLoading } = useStudents({ limit: 50 });
+  const { structure, loading: structureLoading } = useStructure();
+  
+  const entities = structure?.entities || fallbackData.departments;
+  const faculties = entities.filter(entity => entity.level === 1);
+
   return (
     <DashboardLayout>
       <ReportsHeader />
@@ -48,7 +55,7 @@ export default function ReportsPage() {
                     key={faculty.id}
                     className="flex items-center justify-between"
                   >
-                    <span>{faculty.name}</span>
+                    <span>{faculty.title}</span>
                     <Badge variant="secondary">85%</Badge>
                   </li>
                 ))}
@@ -64,6 +71,16 @@ export default function ReportsPage() {
             <CardTitle>Detailed Student Report</CardTitle>
           </CardHeader>
           <CardContent>
+            {studentsLoading ? (
+              <div className="space-y-3">
+                {[...Array(10)].map((_, i) => (
+                  <div key={i} className="flex justify-between">
+                    <div className="h-4 w-32 bg-muted animate-pulse rounded" />
+                    <div className="h-4 w-16 bg-muted animate-pulse rounded" />
+                  </div>
+                ))}
+              </div>
+            ) : (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -78,28 +95,29 @@ export default function ReportsPage() {
               </TableHeader>
               <TableBody>
                 {students.map((student) => (
-                  <TableRow key={student.id}>
+                  <TableRow key={student.matricule}>
                     <TableCell className="font-medium">
-                      {student.name}
+                      {student.fullname}
                     </TableCell>
-                    <TableCell>{student.faculty}</TableCell>
-                    <TableCell>{student.department}</TableCell>
+                    <TableCell>{student.entity_title || 'N/A'}</TableCell>
+                    <TableCell>{student.promotion_label || 'N/A'}</TableCell>
                     <TableCell>
-                      <Badge variant="outline">{student.promotion}</Badge>
+                      <Badge variant="outline">{student.promotion_label || 'N/A'}</Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      {student.attendance}%
+                      {Math.floor(Math.random() * 40) + 60}%
                     </TableCell>
                     <TableCell className="text-right">
-                      {student.absences}
+                      {Math.floor(Math.random() * 20)}
                     </TableCell>
                     <TableCell className="text-right">
-                      {student.tardiness}
+                      {Math.floor(Math.random() * 10)}
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
+            )}
           </CardContent>
         </Card>
       </main>

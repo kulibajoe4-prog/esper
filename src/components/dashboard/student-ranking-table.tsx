@@ -13,18 +13,66 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { students } from '@/lib/data';
+import { useStudents } from '@/hooks/use-api';
 import { Badge } from '@/components/ui/badge';
 import { ArrowDown, ArrowUp } from 'lucide-react';
 
 export default function StudentRankingTable() {
-  const mostAssiduous = [...students]
+  const { students, loading, error } = useStudents({ limit: 20 });
+
+  if (loading) {
+    return (
+      <div className="grid gap-6 md:grid-cols-2">
+        {[...Array(2)].map((_, i) => (
+          <Card key={i}>
+            <CardHeader>
+              <div className="h-6 w-48 bg-muted animate-pulse rounded" />
+              <div className="h-4 w-64 bg-muted animate-pulse rounded" />
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {[...Array(5)].map((_, j) => (
+                  <div key={j} className="flex justify-between">
+                    <div className="h-4 w-32 bg-muted animate-pulse rounded" />
+                    <div className="h-4 w-16 bg-muted animate-pulse rounded" />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  if (error || !students.length) {
+    return (
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card>
+          <CardContent className="p-6">
+            <p className="text-sm text-muted-foreground">
+              {error || 'No student data available'}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Pour la démo, nous allons simuler des données de présence
+  // En production, ces données viendraient de l'API des présences
+  const studentsWithStats = students.map(student => ({
+    ...student,
+    attendance: Math.floor(Math.random() * 40) + 60, // 60-100%
+    absences: Math.floor(Math.random() * 20), // 0-20 absences
+  }));
+
+  const mostAssiduous = [...studentsWithStats]
     .sort((a, b) => b.attendance - a.attendance)
     .slice(0, 5);
-  const mostAbsent = [...students]
+  const mostAbsent = [...studentsWithStats]
     .sort((a, b) => b.absences - a.absences)
     .slice(0, 5);
-
   return (
     <div className="grid gap-6 md:grid-cols-2">
       <Card>
@@ -48,10 +96,10 @@ export default function StudentRankingTable() {
             </TableHeader>
             <TableBody>
               {mostAssiduous.map((student) => (
-                <TableRow key={student.id}>
-                  <TableCell className="font-medium">{student.name}</TableCell>
+                <TableRow key={student.matricule}>
+                  <TableCell className="font-medium">{student.fullname}</TableCell>
                   <TableCell>
-                    <Badge variant="outline">{student.promotion}</Badge>
+                    <Badge variant="outline">{student.promotion_label || 'N/A'}</Badge>
                   </TableCell>
                   <TableCell className="text-right">
                     {student.attendance}%
@@ -84,10 +132,10 @@ export default function StudentRankingTable() {
             </TableHeader>
             <TableBody>
               {mostAbsent.map((student) => (
-                <TableRow key={student.id}>
-                  <TableCell className="font-medium">{student.name}</TableCell>
+                <TableRow key={student.matricule}>
+                  <TableCell className="font-medium">{student.fullname}</TableCell>
                   <TableCell>
-                    <Badge variant="outline">{student.promotion}</Badge>
+                    <Badge variant="outline">{student.promotion_label || 'N/A'}</Badge>
                   </TableCell>
                   <TableCell className="text-right">
                     {student.absences}

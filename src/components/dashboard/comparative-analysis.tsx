@@ -7,7 +7,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { faculties } from '@/lib/data';
+import { useStructure } from '@/hooks/use-api';
+import { fallbackData } from '@/lib/data';
 import {
   PieChart,
   Pie,
@@ -29,6 +30,12 @@ const data02 = [
 ];
 
 export default function ComparativeAnalysis() {
+  const { structure, loading } = useStructure();
+  
+  // Utiliser les données de l'API ou les données de fallback
+  const entities = structure?.entities || fallbackData.departments;
+  const faculties = entities.filter(entity => entity.level === 1);
+
   return (
     <Card>
       <CardHeader>
@@ -40,12 +47,12 @@ export default function ComparativeAnalysis() {
             <p className="font-medium">Selection 1</p>
             <Select defaultValue="Sciences et Technologies">
               <SelectTrigger className="w-[220px]">
-                <SelectValue placeholder="Compare Faculty..." />
+                <SelectValue placeholder={loading ? "Loading..." : "Compare Faculty..."} />
               </SelectTrigger>
               <SelectContent>
                 {faculties.map((faculty) => (
-                  <SelectItem key={faculty.id} value={faculty.name}>
-                    {faculty.name}
+                  <SelectItem key={faculty.id} value={faculty.title}>
+                    {faculty.title}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -56,12 +63,12 @@ export default function ComparativeAnalysis() {
             <p className="font-medium">Selection 2</p>
             <Select defaultValue="Sciences Économiques et de Gestion">
               <SelectTrigger className="w-[220px]">
-                <SelectValue placeholder="Compare Faculty..." />
+                <SelectValue placeholder={loading ? "Loading..." : "Compare Faculty..."} />
               </SelectTrigger>
               <SelectContent>
                 {faculties.map((faculty) => (
-                  <SelectItem key={faculty.id} value={faculty.name}>
-                    {faculty.name}
+                  <SelectItem key={faculty.id} value={faculty.title}>
+                    {faculty.title}
                   </SelectItem>
                 ))}
               </SelectContent>
